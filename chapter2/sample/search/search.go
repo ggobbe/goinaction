@@ -27,19 +27,22 @@ func Run(searchTerm string) {
 	waitGroup.Add(len(feeds))
 
 	// Launch a goroutine for each feed to find the results.
-	for _, feed := range feeds {
-		// Retrieve a matcher for the search.
-		matcher, exists := matchers[feed.Type]
-		if !exists {
-			matcher = matchers["default"]
-		}
+	go func() {
+		for _, feed := range feeds {
+			// Retrieve a matcher for the search.
+			matcher, exists := matchers[feed.Type]
+			if !exists {
+				matcher = matchers["default"]
+			}
 
-		// Launch the goroutine to perform the search.
-		go func(matcher Matcher, feed *Feed) {
-			Match(matcher, feed, searchTerm, results)
-			waitGroup.Done()
-		}(matcher, feed)
-	}
+			// Launch the goroutine to perform the search.
+			//go func(matcher Matcher, feed *Feed) {
+			func(matcher Matcher, feed *Feed) {
+				Match(matcher, feed, searchTerm, results)
+				waitGroup.Done()
+			}(matcher, feed)
+		}
+	}()
 
 	// Launch a goroutine to monitor when all the work is done.
 	go func() {
